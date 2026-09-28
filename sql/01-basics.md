@@ -8,7 +8,7 @@
 3. [Sample Data Used in This Doc](#3-sample-data)
 4. [Examples with Explanations](#4-examples-with-explanations)
 5. [Interview Questions and Answers](#5-interview-questions-and-answers)
-6. [Practice Problems](#6-practice-problems)
+6. [Practice Problems](#6-practice-problems) (with setup script, expected output and self-check)
 7. [Common Mistakes](#7-common-mistakes)
 8. [Quick Revision Notes](#8-quick-revision-notes)
 
@@ -234,9 +234,52 @@ Same input always yields same output. `LIMIT` without `ORDER BY`, or `ROW_NUMBER
 
 ## 6. Practice Problems
 
-Use the sample tables from section 3.
+### How to practice (write, run, test, then look at the solution)
 
-**P1.** List employees hired after 2020-12-31, sorted by hire date (newest first).
+1. **Set up the data.** Run [`01-basics-setup.sql`](./01-basics-setup.sql) in any database (Postgres, Snowflake, MySQL, SQLite, or a free online tool like DB Fiddle / SQLite Online). It creates the `employees` and `departments` tables from section 3.
+2. **Write your own query** for the problem.
+3. **Compare with the Expected Output** shown under each problem.
+4. **Run the self-check query** (template below). If it returns **0 rows**, your answer is correct.
+5. Only then open the **Solution** to compare approaches.
+
+### Self-check template
+
+Paste your query into `my_answer` and the expected rows into `expected`. The check shows rows that are **missing** from your answer and rows that are **extra**. **Zero rows returned = PASS.**
+
+```sql
+WITH my_answer AS (
+    -- paste YOUR query here
+    SELECT name, salary
+    FROM employees
+    WHERE salary IS NULL OR salary < 70000
+),
+expected (name, salary) AS (
+    VALUES ('Priya', NULL),
+           ('Kiran', 60000)
+)
+SELECT 'MISSING' AS issue, m.* FROM (SELECT * FROM expected  EXCEPT SELECT * FROM my_answer) m
+UNION ALL
+SELECT 'EXTRA'   AS issue, e.* FROM (SELECT * FROM my_answer EXCEPT SELECT * FROM expected)  e;
+```
+
+Notes:
+- Column names and column **order** in `my_answer` must match `expected`.
+- `EXCEPT` treats NULLs as equal, which is what we want here. It ignores row order, so for problems with `ORDER BY`, also compare the order by eye.
+- Dialect notes: BigQuery needs `EXCEPT DISTINCT`. Oracle uses `MINUS`. SQL Server / older MySQL / SQLite need `SELECT ... UNION ALL SELECT ...` instead of `VALUES (...)`, for example `SELECT 'Priya', NULL UNION ALL SELECT 'Kiran', 60000`.
+- If your database has no `EXCEPT`, just compare the output with the Expected Output table by eye.
+
+---
+
+### P1. List employees hired after 2020-12-31, sorted by hire date (newest first).
+
+**Expected output (order matters):**
+
+| emp_id | name  | hire_date  |
+|--------|-------|------------|
+| 6      | Kiran | 2023-08-30 |
+| 5      | Priya | 2023-02-11 |
+| 4      | John  | 2022-05-20 |
+| 3      | Meera | 2021-01-10 |
 
 <details><summary>Solution</summary>
 
@@ -248,7 +291,14 @@ ORDER BY hire_date DESC;
 ```
 </details>
 
-**P2.** Show the number of employees and the average salary per department, only for departments with more than 1 employee.
+### P2. Show the number of employees and the average salary per department, only for departments with more than 1 employee.
+
+**Expected output:**
+
+| dept_id | emp_count | avg_salary |
+|---------|-----------|------------|
+| 10      | 2         | 82500      |
+| 20      | 2         | 82000      |
 
 <details><summary>Solution</summary>
 
@@ -258,10 +308,17 @@ FROM employees
 GROUP BY dept_id
 HAVING COUNT(*) > 1;
 ```
-Note: `Kiran` has NULL `dept_id` and forms its own group of 1, so it is excluded by the HAVING.
+Note: `Kiran` has NULL `dept_id` and forms its own group of 1, so it is excluded by the HAVING. Priya's group (dept 30) has only 1 employee.
 </details>
 
-**P3.** Find employees whose salary is NULL or below 70000.
+### P3. Find employees whose salary is NULL or below 70000.
+
+**Expected output:**
+
+| name  | salary |
+|-------|--------|
+| Priya | NULL   |
+| Kiran | 60000  |
 
 <details><summary>Solution</summary>
 
@@ -270,9 +327,16 @@ SELECT name, salary
 FROM employees
 WHERE salary IS NULL OR salary < 70000;
 ```
+`salary < 70000` alone would miss Priya, because `NULL < 70000` is UNKNOWN.
 </details>
 
-**P4.** Find the second highest distinct salary.
+### P4. Find the second highest distinct salary.
+
+**Expected output:**
+
+| second_highest |
+|----------------|
+| 82000          |
 
 <details><summary>Solution</summary>
 
@@ -280,11 +344,22 @@ WHERE salary IS NULL OR salary < 70000;
 SELECT MAX(salary) AS second_highest
 FROM employees
 WHERE salary < (SELECT MAX(salary) FROM employees);
--- Expected: 82000
 ```
+Meera and John both earn 82000, but it is counted once because we want the second **distinct** value.
 </details>
 
-**P5.** Add a column `tenure_flag` = 'Senior' if hired before 2021-01-01, otherwise 'Junior'.
+### P5. Add a column `tenure_flag` = 'Senior' if hired before 2021-01-01, otherwise 'Junior'.
+
+**Expected output:**
+
+| name  | hire_date  | tenure_flag |
+|-------|------------|-------------|
+| Asha  | 2019-03-15 | Senior      |
+| Ravi  | 2020-07-01 | Senior      |
+| Meera | 2021-01-10 | Junior      |
+| John  | 2022-05-20 | Junior      |
+| Priya | 2023-02-11 | Junior      |
+| Kiran | 2023-08-30 | Junior      |
 
 <details><summary>Solution</summary>
 
@@ -295,7 +370,13 @@ FROM employees;
 ```
 </details>
 
-**P6.** Find all employees who do **not** belong to any department listed in the `departments` table (safely handling NULLs).
+### P6. Find all employees who do **not** belong to any department listed in the `departments` table (safely handling NULLs).
+
+**Expected output:**
+
+| name  |
+|-------|
+| Kiran |
 
 <details><summary>Solution</summary>
 
@@ -305,12 +386,19 @@ FROM employees e
 WHERE NOT EXISTS (
     SELECT 1 FROM departments d WHERE d.dept_id = e.dept_id
 );
--- Returns Kiran (dept_id NULL)
 ```
 `NOT EXISTS` is NULL-safe, unlike `NOT IN`.
 </details>
 
-**P7.** Return the top 3 highest paid employees. If there is a tie for 3rd place, explain how you would handle it.
+### P7. Return the top 3 highest paid employees. Use `emp_id` as the tiebreaker. Also explain how you would handle a tie for 3rd place if the business wanted *everyone* tied.
+
+**Expected output (order matters):**
+
+| name  | salary |
+|-------|--------|
+| Asha  | 90000  |
+| Meera | 82000  |
+| John  | 82000  |
 
 <details><summary>Solution</summary>
 
