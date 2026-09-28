@@ -15,7 +15,7 @@ A structured, topic-by-topic guide for preparing for **Data Engineer interviews 
 ### Phase 1: SQL
 
 - [x] [01 - SQL Basics](./sql/01-basics.md)
-- [ ] 02 - Joins (all types, duplicates, anti/semi joins)
+- [x] [02 - Joins](./sql/02-joins.md)
 - [ ] 03 - Aggregations and Conditional Logic
 - [ ] 04 - Subqueries and CTEs (including recursive)
 - [ ] 05 - Window Functions
