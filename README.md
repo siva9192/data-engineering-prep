@@ -17,10 +17,10 @@ A structured, topic-by-topic guide for preparing for **Data Engineer interviews 
 - [x] [01 - SQL Basics](./sql/01-basics.md)
 - [x] [02 - Joins](./sql/02-joins.md)
 - [x] [03 - Aggregations](./sql/03-aggregations.md)
-- [x] 04 - Subqueries and CTEs (including recursive)
-- [x] 05 - Window Functions
-- [x] 06 - Data Cleaning (NULLs, dates, strings, deduplication)
-- [x] 07 - Set Operations, EXISTS vs IN
+- [x] [04 - Subqueries and CTEs](./sql/04-subqueries-ctes.md)
+- [x] [05 - Window Functions](./sql/05-window-functions.md)
+- [x] [06 - Data Cleaning](./sql/06-data-cleaning.md)
+- [x] [07 - Set Operations](./sql/07-set-operations.md)
 - [ ] 08 - Query Optimization (indexes, execution plans, partitioning)
 - [ ] 09 - Data Modeling (star/snowflake, SCD types, normalization)
 - [ ] 10 - Classic Scenario Problems (top N per group, gaps and islands, sessionization, retention)
